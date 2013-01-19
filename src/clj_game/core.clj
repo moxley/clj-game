@@ -1,6 +1,9 @@
 (ns clj-game.core)
+(import org.lwjgl.opengl.Display)
+(import org.lwjgl.opengl.DisplayMode)
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(defn setup-display []
+  (let [mode (new DisplayMode 640 480)]
+    (Display/setDisplayMode mode)
+    (Display/setTitle "Pong")
+    (Display/create)))
