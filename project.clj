@@ -6,4 +6,6 @@
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.lwjgl/lwjgl "2.7.1"]
                  [org.lwjgl/lwjgl-util "2.7.1"]
-                 [org.lwjgl/lwjgl-native-platform "2.7.1"]])
+                 [org.lwjgl/lwjgl-native-platform "2.7.1"]]
+
+  :main clj-game.core)
