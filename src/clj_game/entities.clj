@@ -31,11 +31,14 @@
      (+ (e :x) (e :width))
      (+ (e :y) (e :height)))))
 
-(defn update-entity [entity delta]
+(defn update-position [entity delta]
   (let [e @entity
         x (+ (e :x) (* delta (e :dx)))
         y (+ (e :y) (* delta (e :dy)))]
     (swap! entity conj [:x x] [:y y])))
+
+(defn update-entity [entity values]
+  (swap! entity into values))
 
 (defn collides? [e1 e2]
   (and

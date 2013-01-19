@@ -1,5 +1,6 @@
 (ns clj-game.core
   (:use [clj-game.entities]
+        [clj-game.input]
         [clj-game.display]))
 
 (import org.lwjgl.opengl.Display)
@@ -12,7 +13,8 @@
   (System/exit 0))
 
 (defn do-logic [delta]
-  (update-entity ball delta)
+  (update-position ball delta)
+  (update-position bat delta)
   ;;bat.update(delta)
   (if (collides? @ball @bat)
     (flip-delta ball)))
@@ -35,6 +37,7 @@
         ; do game stuff
         (render)
         (do-logic delta)
+        (handle-input bat)
         (update-display)
         (recur loop-time))))))
 
