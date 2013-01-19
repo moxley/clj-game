@@ -14,15 +14,16 @@
 
 (defn do-logic [delta]
   (update-position ball delta)
-  (update-position bat delta)
-  ;;bat.update(delta)
-  (if (collides? @ball @bat)
-    (flip-delta ball)))
+  (update-position paddle delta)
+  ;;paddle.update(delta)
+  (cond (collides? @ball @paddle) (flip-delta ball :dx)
+        (not (collides-x? @ball border)) (flip-delta ball :dx)
+        (not (collides-y? @ball border)) (flip-delta ball :dy)))
 
 (defn render []
   (GL11/glClear GL11/GL_COLOR_BUFFER_BIT)
   (draw-entity ball)
-  (draw-entity bat))
+  (draw-entity paddle))
 
 (defn get-current-time []
   (/ (* (Sys/getTime) 1000) (Sys/getTimerResolution)))
@@ -37,7 +38,7 @@
         ; do game stuff
         (render)
         (do-logic delta)
-        (handle-input bat)
+        (handle-input paddle)
         (update-display)
         (recur loop-time))))))
 

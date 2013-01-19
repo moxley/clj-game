@@ -3,12 +3,12 @@
 
 (import org.lwjgl.input.Keyboard)
 
-(defn handle-input [bat]
+(defn handle-input [paddle]
   (let [dy (cond
            (Keyboard/isKeyDown Keyboard/KEY_UP) -0.2
            (Keyboard/isKeyDown Keyboard/KEY_DOWN) 0.2
            :else 0)]
-    (update-entity bat {:dy dy})))
+    (update-entity paddle {:dy dy})))
 
 
 

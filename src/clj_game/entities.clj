@@ -5,6 +5,7 @@
 
 ;;-----------------------------------------------------------------------------
 ;;  Main game entities
+(def border {:x 0 :y 0 :width WIDTH :height HEIGHT})
 
 (def ball (atom {:x (- (/ WIDTH 2) (/ 10 2))
                  :y (- (/ HEIGHT 2) (/ 10 2))
@@ -13,7 +14,7 @@
                  :dx (* -1 X-SPEED)
                  :dy 0.0}))
 
-(def bat (atom {:x 10
+(def paddle (atom {:x 10
                 :y (- (/ HEIGHT 2) (/ 80 2))
                 :width 10
                 :height 80
@@ -40,12 +41,19 @@
 (defn update-entity [entity values]
   (swap! entity into values))
 
-(defn collides? [e1 e2]
+(defn collides-x? [e1 e2]
   (and
    (<= (e1 :x) (+ (e2 :x) (e2 :width)))
-   (>= (e1 :x) (e2 :x))
+   (>= (e1 :x) (e2 :x))))
+
+(defn collides-y? [e1 e2]
+  (and
    (>= (e1 :y) (e2 :y))
    (<= (e1 :y) (+ (e2 :y) (e2 :height)))))
 
-(defn flip-delta [entity]
-  (swap! entity conj [:dx (* -1 (@entity :dx))]))
+(defn collides? [e1 e2]
+  (and (collides-x? e1 e2)
+       (collides-y? e1 e2)))
+
+(defn flip-delta [entity key]
+  (swap! entity conj [key (* -1 (@entity key))]))
