@@ -19,12 +19,17 @@
   (Display/destroy)
   (System/exit 0))
 
+(defn update-display []
+  (Display/update)
+  (Display/sync 60))
+
 (defn run-loop []
   (loop []
     (if (Display/isCloseRequested)
       (quit)
       (do 
         ; do game stuff
+        (update-display)
         (recur)))))
 
 (defn -main[]
