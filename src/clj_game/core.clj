@@ -2,6 +2,7 @@
 (import org.lwjgl.opengl.Display)
 (import org.lwjgl.opengl.DisplayMode)
 (import org.lwjgl.opengl.GL11)
+(import org.lwjgl.Sys)
 
 (def WIDTH 640)
 (def HEIGHT 480)
@@ -54,7 +55,8 @@
   (draw-entity ball)
   (draw-entity bat))
 
-(defn get-current-time [] (.getTime (java.util.Date.)))
+(defn get-current-time []
+  (/ (* (Sys/getTime) 1000) (Sys/getTimerResolution)))
 
 (defn run-loop []
   (loop [time (get-current-time)]
