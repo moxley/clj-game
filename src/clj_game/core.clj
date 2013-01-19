@@ -15,6 +15,19 @@
   (GL11/glOrtho 0 640 480 0 1 -1)
   (GL11/glMatrixMode GL11/GL_MODELVIEW))
 
+(defn quit []
+  (Display/destroy)
+  (System/exit 0))
+
+(defn run-loop []
+  (loop []
+    (if (Display/isCloseRequested)
+      (quit)
+      (do 
+        ; do game stuff
+        (recur)))))
+
 (defn -main[]
   (setup-display)
-  (setup-opengl))
+  (setup-opengl)
+  (run-loop))
