@@ -16,7 +16,7 @@
                  :width 10
                  :height 10
                  :dx BALL-DEFAULT-DX
-                 :dy 0.0}))
+                 :dy 0.1}))
 
 (def paddle (atom {:x 10
                 :y (- (/ HEIGHT 2) (/ 80 2))
@@ -48,14 +48,34 @@
 (defn reset-ball [ball]
   (update-entity ball {:x BALL-DEFAULT-X
                        :y BALL-DEFAULT-Y
-                       :dx BALL-DEFAULT-DX}))
+                       :dx BALL-DEFAULT-DX
+                       :dy 0.2}))
+
+(defn point-collides? [point entity]
+  (let [px (point :x)
+        py (point :y)
+        e entity
+        entity-x1 (entity :x)
+        entity-x2 (+ entity-x1 (entity :width))
+        entity-y1 (entity :y)
+        entity-y2 (+ entity-y1 (entity :height))]
+    (and
+     (>= px entity-x1)
+     (<= px entity-x2)
+     (>= py entity-y1)
+     (<= py entity-y2))))
 
 (defn collides? [e1 e2]
-  (and
-   (<= (e1 :x) (+ (e2 :x) (e2 :width)))
-   (>= (e1 :x) (e2 :x))
-   (>= (e1 :y) (e2 :y))
-   (<= (e1 :y) (+ (e2 :y) (e2 :height)))))
+  ;; Check all four corners of e1
+  (let [e1-x1 (e1 :x)
+        e1-x2 (+ e1-x1 (e1 :width))
+        e1-y1 (e1 :y)
+        e1-y2 (+ e1-y1 (e1 :height))]
+    (or
+     (point-collides? {:x e1-x1 :y e1-y1} e2)
+     (point-collides? {:x e1-x2 :y e1-y1} e2)
+     (point-collides? {:x e1-x1 :y e1-y2} e2)
+     (point-collides? {:x e1-x2 :y e1-y2} e2))))
 
 ;; Returns a 2-dimentional vector representing
 ;; which walls the ball is exiting

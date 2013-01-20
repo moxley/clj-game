@@ -34,7 +34,7 @@
        (flip-delta ball :dx)
 
        ;; Hits horizontal walls
-       (not (zero? exit-x))
+       (not (zero? exit-y))
        (flip-delta ball :dy)))))
 
 (defn render []
