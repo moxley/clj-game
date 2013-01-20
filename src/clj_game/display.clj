@@ -4,7 +4,7 @@
 (import org.lwjgl.opengl.DisplayMode)
 (import org.lwjgl.opengl.GL11)
 ;;(import org.lwjgl.Sys)
-
+(import org.lwjgl.LWJGLException)
 
 (def WIDTH 640)
 (def HEIGHT 480)
@@ -12,9 +12,16 @@
 
 (defn setup-display []
   (let [mode (new DisplayMode WIDTH HEIGHT)]
-    (Display/setDisplayMode mode)
-    (Display/setTitle "Pong")
-    (Display/create)))
+    (try
+      (do
+        (Display/setDisplayMode mode)
+        (Display/setTitle "Pong")
+        (Display/create))
+      (catch LWJGLException e
+        (do
+          (.printStackTrace e)
+          (Display/destroy)
+          (System/exit 1))))))
 
 (defn setup-opengl []
   (GL11/glMatrixMode GL11/GL_PROJECTION)
