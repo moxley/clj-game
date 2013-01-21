@@ -1,10 +1,6 @@
-(ns clj-game.display)
-
-(import org.lwjgl.opengl.Display)
-(import org.lwjgl.opengl.DisplayMode)
-(import org.lwjgl.opengl.GL11)
-;;(import org.lwjgl.Sys)
-(import org.lwjgl.LWJGLException)
+(ns clj-game.display
+  (:import [org.lwjgl.opengl Display DisplayMode GL11]
+           [org.lwjgl LWJGLException]))
 
 (def WIDTH 640)
 (def HEIGHT 480)

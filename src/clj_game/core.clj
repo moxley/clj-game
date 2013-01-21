@@ -1,12 +1,9 @@
 (ns clj-game.core
   (:use [clj-game.entities]
         [clj-game.input]
-        [clj-game.display]))
-
-(import org.lwjgl.opengl.Display)
-(import org.lwjgl.opengl.DisplayMode)
-(import org.lwjgl.opengl.GL11)
-(import org.lwjgl.Sys)
+        [clj-game.display])
+  (:import [org.lwjgl.opengl Display DisplayMode GL11]
+           [org.lwjgl Sys]))
 
 (defn quit []
   (Display/destroy)
