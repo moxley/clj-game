@@ -1,6 +1,6 @@
-(ns clj-game.core-test
+(ns pong-clj.core-test
   (:use clojure.test
-        clj-game.core))
+        pong-clj.core))
 
 (deftest a-test
   (testing "FIXME, I fail."

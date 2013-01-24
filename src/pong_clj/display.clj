@@ -1,4 +1,4 @@
-(ns clj-game.display
+(ns pong-clj.display
   (:import [org.lwjgl.opengl Display DisplayMode GL11]
            [org.lwjgl LWJGLException]))
 

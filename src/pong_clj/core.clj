@@ -1,7 +1,7 @@
-(ns clj-game.core
-  (:use [clj-game.entities]
-        [clj-game.input]
-        [clj-game.display])
+(ns pong-clj.core
+  (:use [pong-clj.entities]
+        [pong-clj.input]
+        [pong-clj.display])
   (:import [org.lwjgl.opengl Display DisplayMode GL11]
            [org.lwjgl Sys]))
 

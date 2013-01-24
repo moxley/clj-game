@@ -1,5 +1,5 @@
-(ns clj-game.entities
-  (:require [clj-game.display :as display])
+(ns pong-clj.entities
+  (:require [pong-clj.display :as display])
   (:import [org.lwjgl.opengl GL11]))
 
 ;;-----------------------------------------------------------------------------

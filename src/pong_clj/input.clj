@@ -1,5 +1,5 @@
-(ns clj-game.input
-  (:use [clj-game.entities :only [update-entity]])
+(ns pong-clj.input
+  (:use [pong-clj.entities :only [update-entity]])
   (:import [org.lwjgl.input Keyboard]))
 
 (defn handle-input [paddle]
