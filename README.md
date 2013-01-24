@@ -1,10 +1,13 @@
-# clj-game
+# Pong! Clojure-style
 
-A Clojure library designed to ... well, that part is up to you.
+That's right retro-game fans... your favorite 2d paddle-centric game brought to you in the most lispy jvm language in town.
+
+Proper scoring, more challenging gameplay, and mind-blowingly elegant refactoring coming soon!!!
 
 ## Usage
 
-FIXME
+Ensure you have leiningen install (the 2.x version)
+Then just `lein run`
 
 ## License
 
