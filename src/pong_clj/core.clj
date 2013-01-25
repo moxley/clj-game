@@ -9,8 +9,13 @@
   (Display/destroy)
   (System/exit 0))
 
+(def game-state (atom {:score 0}))
+(defn -inc-score [state] (conj state {:score (inc (state :score))}))
+(defn inc-score [] (swap! game-state -inc-score))
+
 (defn lose-point []
   ;; Pause game, display message
+  (inc-score)
   (reset-ball ball)
   (println "Lost one point"))
 
