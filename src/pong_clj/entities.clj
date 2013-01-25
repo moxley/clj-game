@@ -4,6 +4,8 @@
 
 ;;-----------------------------------------------------------------------------
 ;;  Main game entities
+(def game (atom {:score 0 :mode :playing}))
+
 (def border {:x 0 :y 0 :width display/WIDTH :height display/HEIGHT})
 
 (def BALL-DEFAULT-X (- (/ display/WIDTH 2) (/ 10 2)))
