@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.lwjgl/lwjgl "2.7.1"]
                  [org.lwjgl/lwjgl-util "2.7.1"]
-                 [org.lwjgl/lwjgl-native-platform "2.7.1"]]
+                 [org.lwjgl/lwjgl-native-platform "2.7.1"]
+                 [clj-time "0.4.4"]]
 
   :main pong-clj.core)
