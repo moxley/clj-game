@@ -19,7 +19,6 @@
   (let [dy (cond (key-up?)   (* PADDLE-SPEED -1)
                  (key-down?) PADDLE-SPEED
                  :else 0)]
-    (println (:y @e/paddle))
     (if (paddle-at-border?)
       (e/update-entity paddle {:dy 0})
       (e/update-entity paddle {:dy dy}))))
