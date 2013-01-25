@@ -20,6 +20,14 @@
           (System/exit 1))))))
 
 (defn setup-opengl []
+  (GL11/glEnable GL11/GL_TEXTURE_2D)
+  (GL11/glShadeModel GL11/GL_SMOOTH)
+  (GL11/glDisable GL11/GL_DEPTH_TEST)
+  (GL11/glDisable GL11/GL_LIGHTING)
+
+  (GL11/glClearColor (float 0), (float 0), (float 0), (float 0))
+  (GL11/glClearDepth 1)
+
   (GL11/glMatrixMode GL11/GL_PROJECTION)
   (GL11/glLoadIdentity)
   (GL11/glOrtho 0 640 480 0 1 -1)

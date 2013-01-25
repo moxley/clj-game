@@ -7,6 +7,7 @@
                  [org.lwjgl/lwjgl "2.7.1"]
                  [org.lwjgl/lwjgl-util "2.7.1"]
                  [org.lwjgl/lwjgl-native-platform "2.7.1"]
+                 [slick-util "1.0.0"]
                  [clj-time "0.4.4"]]
 
   :main pong-clj.core)

@@ -31,6 +31,8 @@
 
 (defn draw-entity [entity]
   (let [e @entity]
+    (GL11/glColorMaterial GL11/GL_FRONT_AND_BACK GL11/GL_AMBIENT_AND_DIFFUSE)
+    (GL11/glColor3f 1.0 1.0 1.0)
     (GL11/glRectd
      (e :x)
      (e :y)
