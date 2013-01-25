@@ -18,7 +18,9 @@
   (e/update-position e/ball delta)
   (e/update-position e/paddle delta)
   (if (e/collides? @e/ball @e/paddle) ;; Collides with paddle
-    (e/flip-delta e/ball :dx)
+    (do 
+      (e/flip-delta e/ball :dx)
+      (swap! e/ball conj  [:dx (+ (:dx @e/ball) 0.04)])) ;; muahaha, accelerate!
 
     (let [[exit-x exit-y] (e/ball-exits-border-at @e/ball e/border)]
       (cond
