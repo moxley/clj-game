@@ -38,7 +38,7 @@
 
   (GL11/glMatrixMode GL11/GL_PROJECTION)
   (GL11/glLoadIdentity)
-  (GL11/glOrtho 0 640 480 0 1 -1)
+  (GL11/glOrtho 0 (@e/game :width) (@e/game :height) 0 1 -1)
   (GL11/glMatrixMode GL11/GL_MODELVIEW)
   (load-fonts))
 
