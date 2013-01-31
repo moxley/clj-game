@@ -1,13 +1,11 @@
 (ns pong-clj.core
   (:require [pong-clj.logic :as logic]
-            [pong-clj.display :as d]
+            [pong-clj.display :as display]
             [pong-clj.input :as input])
-  (:import [org.lwjgl.opengl Display DisplayMode GL11]
-           [org.lwjgl Sys]
-           [org.newdawn.slick Color]))
+  (:import [org.lwjgl Sys]))
 
 (defn quit []
-  (Display/destroy)
+  (display/destroy)
   (System/exit 0))
 
 (defn get-current-time []
@@ -17,16 +15,16 @@
   (loop [time (get-current-time)]
     (let [loop-time (get-current-time)
           delta (- loop-time time)]
-    (if (Display/isCloseRequested)
+    (if (display/close-requested?)
       (quit)
       (do 
         ; do game stuff
-        (d/render)
+        (display/render)
         (logic/update delta)
         (input/handle-input)
-        (d/update-display)
+        (display/update-display)
         (recur loop-time))))))
 
 (defn -main[]
-  (d/setup)
+  (display/setup)
   (run-loop))

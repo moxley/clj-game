@@ -68,3 +68,9 @@
 (defn update-display []
   (Display/update)
   (Display/sync 60))
+
+(defn close-requested? []
+  (Display/isCloseRequested))
+
+(defn destroy []
+  (Display/destroy))
