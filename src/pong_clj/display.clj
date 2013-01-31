@@ -1,13 +1,21 @@
 (ns pong-clj.display
+  (:require [pong-clj.entities :as e])
   (:import [org.lwjgl.opengl Display DisplayMode GL11]
-           [org.lwjgl LWJGLException]))
+           [org.lwjgl LWJGLException]
+           [java.awt Font]
+           [org.newdawn.slick Color TrueTypeFont]))
 
-(def WIDTH 640)
-(def HEIGHT 480)
-(def X-SPEED 0.15)
+(def font-res (atom {}))
+
+(defn primary-font [] (:font @font-res))
+
+(defn load-fonts []
+  (let [awt-font (Font. "Arial" Font/BOLD, 24)
+        font (TrueTypeFont. awt-font true)]
+    (swap! font-res into {:awt-font awt-font :font font})))
 
 (defn setup-display []
-  (let [mode (new DisplayMode WIDTH HEIGHT)]
+  (let [mode (new DisplayMode (@e/game :width) (@e/game :height))]
     (try
       (do
         (Display/setDisplayMode mode)
@@ -31,7 +39,31 @@
   (GL11/glMatrixMode GL11/GL_PROJECTION)
   (GL11/glLoadIdentity)
   (GL11/glOrtho 0 640 480 0 1 -1)
-  (GL11/glMatrixMode GL11/GL_MODELVIEW))
+  (GL11/glMatrixMode GL11/GL_MODELVIEW)
+  (load-fonts))
+
+(defn setup []
+  (setup-display)
+  (setup-opengl))
+
+(defn render-entities []
+  (if (= (@e/game :mode) :playing)
+    (e/draw-entity e/ball))
+  (e/draw-entity e/paddle))
+
+(defn render-point-pause []
+  (GL11/glEnable GL11/GL_BLEND)
+  (GL11/glBlendFunc GL11/GL_SRC_ALPHA GL11/GL_ONE_MINUS_SRC_ALPHA)
+  (.bind Color/white)
+  (.drawString (primary-font) (- (/ (@e/game :width) 2.0) 70) 50 "1 point lost" Color/white))
+
+(defn render []
+  (GL11/glClear GL11/GL_COLOR_BUFFER_BIT)
+  (if (= (@e/game :mode) :point-pause)
+    (render-point-pause))
+
+  (GL11/glDisable GL11/GL_BLEND)
+  (render-entities))
 
 (defn update-display []
   (Display/update)

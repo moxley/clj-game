@@ -1,16 +1,17 @@
 (ns pong-clj.entities
-  (:require [pong-clj.display :as display])
   (:import [org.lwjgl.opengl GL11]))
+
+(def X-SPEED 0.15)
 
 ;;-----------------------------------------------------------------------------
 ;;  Main game entities
-(def game (atom {:score 0 :mode :playing}))
+(def game (atom {:width 640 :height 480 :score 0 :mode :playing}))
 
-(def border {:x 0 :y 0 :width display/WIDTH :height display/HEIGHT})
+(def border {:x 0 :y 0 :width (@game :width) :height (@game :height)})
 
-(def BALL-DEFAULT-X (- (/ display/WIDTH 2) (/ 10 2)))
-(def BALL-DEFAULT-Y (- (/ display/HEIGHT 2) (/ 10 2)))
-(def BALL-DEFAULT-DX (* -1 display/X-SPEED))
+(def BALL-DEFAULT-X (- (/ (@game :width) 2) (/ 10 2)))
+(def BALL-DEFAULT-Y (- (/ (@game :height) 2) (/ 10 2)))
+(def BALL-DEFAULT-DX (* -1 X-SPEED))
 
 (def ball (atom {:x BALL-DEFAULT-X
                  :y BALL-DEFAULT-Y
@@ -20,7 +21,7 @@
                  :dy 0.1}))
 
 (def paddle (atom {:x 10
-                :y (- (/ display/HEIGHT 2) (/ 80 2))
+                :y (- (/ (@game :height) 2) (/ 80 2))
                 :width 10
                 :height 80
                 :dx 0.0
