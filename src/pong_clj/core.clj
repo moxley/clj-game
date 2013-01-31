@@ -1,30 +1,23 @@
 (ns pong-clj.core
-  (:require [pong-clj.logic :as logic]
-            [pong-clj.display :as display]
-            [pong-clj.input :as input])
-  (:import [org.lwjgl Sys]))
+  (:require [pong-clj.client :as client]
+            [pong-clj.server :as srvr]
+            [pong-clj.entities :as entities])
+  (:use commandline.core))
 
-(defn quit []
-  (display/destroy)
-  (System/exit 0))
+(def runtime-state (atom {}))
 
-(defn get-current-time []
-  (/ (* (Sys/getTime) 1000) (Sys/getTimerResolution)))
+(defn process-command-line []
+  (with-commandline
+    [arguments ["-n" "--network" "-s" "--server"]]
+    [[n network "connect to multi-player server"]
+     [s server "start multi-player server"]]
+    (println "network:" network)
+    (println "server:" server)
+    (when (true? network)
+      (swap! entities/game into {:network? true}))
+    (when (true? server)
+      (swap! runtime-state into {:server? true}))))
 
-(defn run-loop []
-  (loop [time (get-current-time)]
-    (let [loop-time (get-current-time)
-          delta (- loop-time time)]
-    (if (display/close-requested?)
-      (quit)
-      (do 
-        ; do game stuff
-        (display/render)
-        (logic/update delta)
-        (input/handle-input)
-        (display/update-display)
-        (recur loop-time))))))
-
-(defn -main[]
-  (display/setup)
-  (run-loop))
+(defn -main [& rest]
+  (process-command-line)
+  (client/main))
