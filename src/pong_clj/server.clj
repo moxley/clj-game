@@ -5,27 +5,23 @@
            (java.net DatagramSocket DatagramPacket InetAddress)))
 
 (defn create-server [port]
-  (let [serverSocket (DatagramSocket. port)
-        receiveData (byte-array 1024)
-        sendData (byte-array 1024)]
+  (let [serverSocket (DatagramSocket. port)]
+    (println "Listening on port" port)
     (loop []
-      (let [receivePacket (DatagramPacket. receiveData (alength receiveData))
-            _ (.receive serverSocket receivePacket)
-            raw-packet (.getData receivePacket)]
-        (when (net/protocol-packet? raw-packet)
-          (let [packet (net/unpack-packet raw-packet)
-                sentence (String. (byte-array (:payload packet)))
-                _ (println "RECEIVED: " sentence)
-                addr (.getAddress receivePacket)
-                port (.getPort receivePacket)
-                capitalizedSentence (.toUpperCase sentence)
-                sendData (.getBytes capitalizedSentence)
-                sendPacket (DatagramPacket. sendData (alength sendData) addr port)
-                _ (.send serverSocket sendPacket)])))
+      (let [packet (net/receive-packet serverSocket)
+            sentence (String. (byte-array (:payload packet)))
+            _ (println "RECEIVED: " sentence)
+            remote {:addr (:addr packet) :port (:port packet) :socket serverSocket}
+            capitalizedSentence (.toUpperCase sentence)
+            sendData (.getBytes capitalizedSentence)
+            _ (net/send-data remote (.getBytes capitalizedSentence))])
       (recur))))
+
+(defn handle-packet [packet]
+  (let [sentence (String. (byte-array (:payload packet)))
+        capitalizedSentence (.toUpperCase sentence)]))
 
 (defn main
   ([port]
-    (create-server port)
-    (println "Listening on port" port))
+    (create-server port))
   ([] (main net/UDP_PORT)))

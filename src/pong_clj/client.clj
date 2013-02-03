@@ -8,21 +8,16 @@
            [java.net ConnectException DatagramSocket DatagramPacket InetAddress]))
 
 (defn client-loop [conn]
-  (println "client-loop")
   (let [clientSocket (DatagramSocket.)
         addr (InetAddress/getByName (:host conn))
         _ (println "IPAddress:" addr)
-        sendData (byte-array 1024)
-        receiveData (byte-array 1024)]
+        remote (into conn {:addr addr :socket clientSocket})]
     (loop [i 0]
       (let [sentence   "Hello, this is client"
-            sendData   (net/pack-packet (.getBytes sentence))
-            sendPacket (DatagramPacket. sendData (alength sendData) addr (:port conn))
             _ (println "Sending:" sentence)
-            _ (.send clientSocket sendPacket)
-            receivePacket (DatagramPacket. receiveData (alength receiveData))
-            _ (.receive clientSocket receivePacket)
-            modifiedSentence (String. (.getData receivePacket))
+            _ (net/send-data remote (.getBytes sentence))
+            packet (net/receive-packet clientSocket)
+            modifiedSentence (String. (:payload packet))
             _ (println "FROM SERVER:" modifiedSentence)]
         (when (< i 10)
           (recur (inc i)))))
