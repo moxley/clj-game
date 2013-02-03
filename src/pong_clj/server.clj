@@ -1,49 +1,31 @@
 (ns pong-clj.server
-  (:use [clojure.java.io :only [reader writer]]
-        [server.socket :only [create-server]])
+  (:use [clojure.java.io :only [reader writer]])
+  (:require [pong-clj.network :as net])
   (:import (java.net Socket)
-           (java.io PrintWriter InputStreamReader BufferedReader)))
+           (java.net DatagramSocket DatagramPacket InetAddress)))
 
-(defn- write [conn & rest]
-  (let [msg (apply str (or rest ""))]
-    (print msg)
-    (.print (:out conn) msg)
-    (.flush (:out conn))
-    msg))
-
-(defn- writeln [conn & rest]
-  (let [msg (apply str (or rest ""))]
-    (write conn (str msg "\n"))))
-
-(defn- prompt [conn]
-  (write conn "> ")
-  (let [line (.readLine (:in conn))]
-    (println line)
-    line))
-
-(defn- greeting-game [conn]
-  (writeln conn "What is your name?")
-  (let [player-name (prompt conn)]
-    (writeln conn "Hello, " player-name)
-    (.flush (:error conn))))
-
-(defn- handle-client [in out]
-  (let [error (writer System/err)
-        conn {:in (BufferedReader. (InputStreamReader. in))
-              :out (PrintWriter. out)
-              :error error}]
-    (writeln conn)
-    (greeting-game conn)
-    (loop [input (prompt conn)]
-      (when input
-        (writeln conn "You said: " input)
-        (.flush error)
-        (recur (prompt))))
-    (println "Client disconnected")))
+(defn create-server [port]
+  (let [serverSocket (DatagramSocket. port)
+        receiveData (byte-array 1024)
+        sendData (byte-array 1024)]
+    (loop []
+      (let [receivePacket (DatagramPacket. receiveData (alength receiveData))
+            _ (.receive serverSocket receivePacket)
+            raw-packet (.getData receivePacket)]
+        (when (net/protocol-packet? raw-packet)
+          (let [packet (net/unpack-packet raw-packet)
+                sentence (String. (byte-array (:payload packet)))
+                _ (println "RECEIVED: " sentence)
+                addr (.getAddress receivePacket)
+                port (.getPort receivePacket)
+                capitalizedSentence (.toUpperCase sentence)
+                sendData (.getBytes capitalizedSentence)
+                sendPacket (DatagramPacket. sendData (alength sendData) addr port)
+                _ (.send serverSocket sendPacket)])))
+      (recur))))
 
 (defn main
   ([port]
-    (println "Starting server...")
-    (defonce server (create-server (Integer. port) handle-client))
+    (create-server port)
     (println "Listening on port" port))
-  ([] (main 3333)))
+  ([] (main net/UDP_PORT)))

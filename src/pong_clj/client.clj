@@ -2,45 +2,40 @@
   (:require [pong-clj.logic :as logic]
             [pong-clj.display :as display]
             [pong-clj.input :as input]
-            [pong-clj.entities :as entities])
-  (:import [java.net Socket]
-           [java.io PrintWriter InputStreamReader BufferedReader]
-           [org.lwjgl Sys]
-           [java.net ConnectException]))
+            [pong-clj.entities :as entities]
+            [pong-clj.network :as net])
+  (:import [org.lwjgl Sys]
+           [java.net ConnectException DatagramSocket DatagramPacket InetAddress]))
 
-(defn write [conn msg]
-  (doto (:out @conn)
-    (.println (str msg "\r"))
-    (.flush))
-  (println msg))
-
-(defn conn-handler [conn]
-  (while (nil? (:exit @conn))
-    (let [msg (.readLine (:in @conn))]
-      (println msg)
-      (cond
-        (re-find #"^ERROR :Closing Link:" msg)
-        (dosync (alter conn merge {:exit true}))
-
-        (re-find #"^PING" msg)
-        (write conn (str "PONG "  (re-find #":.*" msg)))
-
-        (re-find #"^What is your name" msg)
-        (do
-          (write conn "Clojure"))))))
+(defn client-loop [conn]
+  (println "client-loop")
+  (let [clientSocket (DatagramSocket.)
+        addr (InetAddress/getByName (:host conn))
+        _ (println "IPAddress:" addr)
+        sendData (byte-array 1024)
+        receiveData (byte-array 1024)]
+    (loop [i 0]
+      (let [sentence   "Hello, this is client"
+            sendData   (net/pack-packet (.getBytes sentence))
+            sendPacket (DatagramPacket. sendData (alength sendData) addr (:port conn))
+            _ (println "Sending:" sentence)
+            _ (.send clientSocket sendPacket)
+            receivePacket (DatagramPacket. receiveData (alength receiveData))
+            _ (.receive clientSocket receivePacket)
+            modifiedSentence (String. (.getData receivePacket))
+            _ (println "FROM SERVER:" modifiedSentence)]
+        (when (< i 10)
+          (recur (inc i)))))
+    (println "Disconnecting")
+    (.close clientSocket)))
 
 (defn connect [server]
-  (let [socket (Socket. (:name server) (:port server))
-        in (BufferedReader. (InputStreamReader. (.getInputStream socket)))
-        out (PrintWriter. (.getOutputStream socket))
-        conn (ref {:in in :out out})]
-    (doto (Thread. #(conn-handler conn)) (.start))
-    conn))
+  (doto (Thread. #(client-loop server)) (.start)))
 
 (defn connect-to-server []
   (println "Connecting to server...")
   (try
-    (connect {:name "localhost" :port 3333})
+    (connect {:name "localhost" :port net/UDP_PORT})
     (catch ConnectException e (println "Failed to connect to server"))))
 
 (defn setup-network []

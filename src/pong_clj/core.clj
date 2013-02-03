@@ -8,7 +8,7 @@
 
 (defn process-command-line [args]
   (doseq [a args]
-    (when (= a "-n")
+    (when (= a "-c")
       (swap! entities/game into {:network? true}))
     (when (= a "-s")
       (swap! runtime-state into {:server? true}))))
