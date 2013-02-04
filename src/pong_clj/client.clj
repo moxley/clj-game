@@ -4,12 +4,14 @@
             [pong-clj.input :as input]
             [pong-clj.entities :as entities]
             [pong-clj.network :as net])
-  (:import [org.lwjgl Sys]
-           [java.net ConnectException DatagramSocket InetAddress]))
+  (:import (org.lwjgl Sys)
+           (java.net ConnectException DatagramSocket InetAddress)
+           (java.util Date)))
 
 (defn send-input-diff [inputs new-inputs remote]
   (if (not= inputs new-inputs)
-    (let [sentence (str ":key-up " (:key-up new-inputs) " :key-down " (:key-down new-inputs))
+    (let [t (.getTime (Date.))
+          sentence (str "time: " t ", :key-up " (:key-up new-inputs) ", :key-down " (:key-down new-inputs))
           _ (println "Sending:" sentence)
           _ (net/send-data remote (.getBytes sentence))]
           ;;packet (net/receive-packet clientSocket)
@@ -23,9 +25,8 @@
 
 (defn iteration [remote]
   (let [new-inputs {:key-up (input/key-up?) :key-down (input/key-down?)}]
-    (when (not= new-inputs @inputs)
-      (send-input-diff @inputs new-inputs remote)
-      (swap! inputs into new-inputs)))
+    (send-input-diff @inputs new-inputs remote)
+    (swap! inputs into new-inputs))
   (pause))
 
 (defn client-loop [conn]
