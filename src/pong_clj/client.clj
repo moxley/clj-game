@@ -5,22 +5,35 @@
             [pong-clj.entities :as entities]
             [pong-clj.network :as net])
   (:import [org.lwjgl Sys]
-           [java.net ConnectException DatagramSocket DatagramPacket InetAddress]))
+           [java.net ConnectException DatagramSocket InetAddress]))
+
+(defn send-input-diff [inputs new-inputs remote]
+  (if (not= inputs new-inputs)
+    (let [sentence (str ":key-up " (:key-up new-inputs) " :key-down " (:key-down new-inputs))
+          _ (println "Sending:" sentence)
+          _ (net/send-data remote (.getBytes sentence))]
+          ;;packet (net/receive-packet clientSocket)
+          ;;modifiedSentence (String. (:payload packet))
+          ;;_ (println "FROM SERVER:" modifiedSentence)
+      1)
+    0))
+
+(defn pause [] (Thread/sleep (long 100)))
+(def inputs (atom {}))
+
+(defn iteration [remote]
+  (let [new-inputs {:key-up (input/key-up?) :key-down (input/key-down?)}]
+    (when (not= new-inputs @inputs)
+      (send-input-diff @inputs new-inputs remote)
+      (swap! inputs into new-inputs)))
+  (pause))
 
 (defn client-loop [conn]
   (let [clientSocket (DatagramSocket.)
         addr (InetAddress/getByName (:host conn))
         _ (println "IPAddress:" addr)
         remote (into conn {:addr addr :socket clientSocket})]
-    (loop [i 0]
-      (let [sentence   "Hello, this is client"
-            _ (println "Sending:" sentence)
-            _ (net/send-data remote (.getBytes sentence))
-            packet (net/receive-packet clientSocket)
-            modifiedSentence (String. (:payload packet))
-            _ (println "FROM SERVER:" modifiedSentence)]
-        (when (< i 10)
-          (recur (inc i)))))
+    (loop [] (iteration remote) (recur))
     (println "Disconnecting")
     (.close clientSocket)))
 
