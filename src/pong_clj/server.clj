@@ -2,7 +2,7 @@
   (:use [clojure.java.io :only [reader writer]])
   (:require [pong-clj.network :as net])
   (:import (java.util Date)
-           (java.net Socket DatagramSocket DatagramPacket InetAddress)))
+           (java.net DatagramSocket)))
 
 (def clients (atom {}))
 
@@ -30,6 +30,35 @@
         (println "Client at" (.toString addr) " timed out")
         (swap! clients dissoc addr)))))
 
+;; Sync
+;; Takes an argument for the frames-per-second
+;; Keep track of last invocation
+;; If there was no last invocation, sleep for default amount
+;; Else, set sleep amount to current time minus last invocation time,
+
+(def sync-state (atom {:prev-times []}))
+
+(defn calc-sleep [target-iter-time prev-times]
+  (let [cumulative-time (apply + prev-times)
+        overage (- cumulative-time (* (count prev-times) target-iter-time))]
+    (max (- target-iter-time overage) 0)))
+
+(defn sync-fps [fps]
+  (let [t (.getTime (Date.))
+        target-iter-time (/ 1000.0 fps)
+        prev-times (:prev-times @sync-state)
+        sleep (calc-sleep target-iter-time prev-times)]
+    ;; TODO This calculation is wrong. Absolute times are stored (as they should be). Need to calculate deltas between them
+    (swap! sync-state conj [:prev-times (lazy-cat (rest prev-times) [t])])
+    (when (> sleep 0)
+      (Thread/sleep sleep))))
+
+;; Game loop
+;; Record the start time
+;; Run the loop
+;;   At end of loop:
+;;     Figure out how much time to sleep
+;;     Sleep that much
 (defn timeout-loop []
   (while true
     (timeout-clients)

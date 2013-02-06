@@ -34,7 +34,7 @@
         addr (InetAddress/getByName (:host conn))
         _ (println "IPAddress:" addr)
         remote (into conn {:addr addr :socket clientSocket})]
-    (loop [] (iteration remote) (recur))
+    (while (:running? @entities/game) (iteration remote))
     (println "Disconnecting")
     (.close clientSocket)))
 
@@ -51,6 +51,7 @@
   (when (@entities/game :network?) (connect-to-server)))
 
 (defn quit []
+  (swap! entities/game into {:running? false})
   (display/destroy)
   (System/exit 0))
 
@@ -74,4 +75,5 @@
 (defn main [& rest]
   (display/setup)
   (setup-network)
+  (swap! entities/game into {:running? true})
   (run-loop))
