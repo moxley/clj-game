@@ -1,6 +1,9 @@
 (ns pong-clj.server
   (:use [clojure.java.io :only [reader writer]])
-  (:require [pong-clj.network :as net])
+  (:require [pong-clj.network :as net]
+             [pong-clj.input :as input]
+             [pong-clj.logic :as logic]
+             [pong-clj.entities :as e])
   (:import (java.util Date)
            (java.net DatagramSocket)))
 
@@ -38,20 +41,20 @@
 
 (def sync-state (atom {:prev-times []}))
 
-(defn calc-sleep [target-iter-time prev-times]
-  (let [cumulative-time (apply + prev-times)
-        overage (- cumulative-time (* (count prev-times) target-iter-time))]
-    (max (- target-iter-time overage) 0)))
+;;(defn calc-sleep [target-iter-time prev-times]
+;;  (let [cumulative-time (apply + prev-times)
+;;        overage (- cumulative-time (* (count prev-times) target-iter-time))]
+;;    (max (- target-iter-time overage) 0)))
 
-(defn sync-fps [fps]
-  (let [t (.getTime (Date.))
-        target-iter-time (/ 1000.0 fps)
-        prev-times (:prev-times @sync-state)
-        sleep (calc-sleep target-iter-time prev-times)]
-    ;; TODO This calculation is wrong. Absolute times are stored (as they should be). Need to calculate deltas between them
-    (swap! sync-state conj [:prev-times (lazy-cat (rest prev-times) [t])])
-    (when (> sleep 0)
-      (Thread/sleep sleep))))
+;;(defn sync-fps [fps]
+;;  (let [t (.getTime (Date.))
+;;        target-iter-time (/ 1000.0 fps)
+;;        prev-times (:prev-times @sync-state)
+;;        sleep (calc-sleep target-iter-time prev-times)]
+;;    ;; TODO This calculation is wrong. Absolute times are stored (as they should be). Need to calculate deltas between them
+;;    (swap! sync-state conj [:prev-times (lazy-cat (rest prev-times) [t])])
+;;    (when (> sleep 0)
+;;      (Thread/sleep sleep))))
 
 ;; Game loop
 ;; Record the start time
@@ -64,6 +67,15 @@
     (timeout-clients)
     (Thread/sleep 500)))
 
+(defn handle-request [sentence]
+  (let [[_ key-up-str] (re-find #":key-up (\w+)" sentence)
+        key-up (= "true" key-up-str)
+        [_ key-down-str] (re-find #":key-down (\w+)" sentence)
+        key-down (= "true" key-down-str)]
+    (swap! input/inputs into {:key-up key-up :key-down key-down})
+    (logic/update-paddle)
+    {:paddle {:x (:x @e/paddle) :y (:y @e/paddle)}}))
+
 (defn create-server [port]
   (let [serverSocket (DatagramSocket. port)]
     (println "Listening on port" port)
@@ -74,10 +86,19 @@
             _ (update-client client {:last-packet-at (.getTime (Date.))})
             sentence (String. (byte-array (:payload packet)))
             _ (println (.toString (:addr packet)) ":" sentence)
+
+            ;; Handle request
+            res (handle-request sentence)
+            res-str (str res)
+            _ (println "res-str" res-str)
+
+            ;; Response
             remote {:addr (:addr packet) :port (:port packet) :socket serverSocket}
-            capitalizedSentence (.toUpperCase sentence)
-            sendData (.getBytes capitalizedSentence)
-            _ (net/send-data remote (.getBytes capitalizedSentence))]))))
+
+            ;capitalizedSentence (.toUpperCase sentence)
+            ;_ (net/send-data remote (.getBytes capitalizedSentence))
+
+            _ (net/send-data remote (.getBytes res-str))]))))
 
 (defn handle-packet [packet]
   (let [sentence (String. (byte-array (:payload packet)))

@@ -21,13 +21,12 @@
     0))
 
 (defn pause [] (Thread/sleep (long 100)))
-(def inputs (atom {}))
 
 (defn iteration [remote]
   "Client-side network loop iteration"
   (let [new-inputs {:key-up (input/key-up?) :key-down (input/key-down?)}]
-    (send-input-diff @inputs new-inputs remote)
-    (swap! inputs into new-inputs))
+    (send-input-diff @input/inputs new-inputs remote)
+    (swap! input/inputs into new-inputs))
   (pause))
 
 (defn client-loop [remote]
