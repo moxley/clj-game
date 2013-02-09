@@ -7,6 +7,7 @@
   (:import (java.util Date)
            (java.net DatagramSocket)))
 
+(def server-state (atom {}))
 (def clients (atom {}))
 
 (defn client-from-packet [packet]
@@ -67,6 +68,21 @@
     (timeout-clients)
     (Thread/sleep 500)))
 
+(defn create-remote [addr port socket]
+  {:addr addr :port port :socket socket})
+
+(defn state-for-client []
+  {:paddle {:x (:x @e/paddle) :y (:y @e/paddle)}})
+
+(defn periodic-update [socket]
+  "Periodically update the client"
+  (while true
+    (doseq [[addr client] @clients]
+      (let [remote (create-remote (:addr @client) (:port @client) socket)
+            send-string (str (state-for-client))]
+        (net/send-data remote (.getBytes send-string))))
+    (Thread/sleep 500)))
+
 (defn handle-request [sentence]
   (let [[_ key-up-str] (re-find #":key-up (\w+)" sentence)
         key-up (= "true" key-up-str)
@@ -74,12 +90,13 @@
         key-down (= "true" key-down-str)]
     (swap! input/inputs into {:key-up key-up :key-down key-down})
     (logic/update-paddle)
-    {:paddle {:x (:x @e/paddle) :y (:y @e/paddle)}}))
+    (state-for-client)))
 
 (defn create-server [port]
   (let [serverSocket (DatagramSocket. port)]
     (println "Listening on port" port)
     (doto (Thread. #(timeout-loop)) (.start))
+    (doto (Thread. #(periodic-update serverSocket)) (.start))
     (while true
       (let [packet (net/receive-packet serverSocket)
             client (get-or-initialize-client packet)
@@ -93,7 +110,7 @@
             _ (println "res-str" res-str)
 
             ;; Response
-            remote {:addr (:addr packet) :port (:port packet) :socket serverSocket}
+            remote (create-remote (:addr packet) (:port packet) serverSocket)
 
             ;capitalizedSentence (.toUpperCase sentence)
             ;_ (net/send-data remote (.getBytes capitalizedSentence))

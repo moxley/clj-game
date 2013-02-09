@@ -5,10 +5,10 @@
             [pong-clj.entities :as entities]
             [pong-clj.network :as net])
   (:import (org.lwjgl Sys)
-           (java.net ConnectException DatagramSocket InetAddress)
+           (java.net ConnectException DatagramSocket InetAddress SocketException)
            (java.util Date)))
 
-(defn send-input-diff [inputs new-inputs remote]
+(defn send-input [remote inputs new-inputs]
   (if (not= inputs new-inputs)
     (let [t (.getTime (Date.))
           sentence (str "time: " t ", :key-up " (:key-up new-inputs) ", :key-down " (:key-down new-inputs))
@@ -22,16 +22,29 @@
 
 (defn pause [] (Thread/sleep (long 100)))
 
-(defn iteration [remote]
-  "Client-side network loop iteration"
+(defn send-state [remote]
+  "Send user input state to server"
   (let [new-inputs {:key-up (input/key-up?) :key-down (input/key-down?)}]
-    (send-input-diff @input/inputs new-inputs remote)
-    (swap! input/inputs into new-inputs))
-  (pause))
+    (send-input remote @input/inputs new-inputs)
+  (pause)))
+
+(defn loop-receive-state [remote]
+  (while (:running? @entities/game)
+    ;; Block and receive
+    (try
+      (let [packet (net/receive-packet (:socket remote))
+            sentence (String. (byte-array (:payload packet)))
+            data (read-string sentence)]
+        (println "data:" data)
+        (when (:paddle data)
+          (swap! entities/paddle into (:paddle data))))
+      (catch SocketException e nil))))
 
 (defn client-loop [remote]
   "Run the client side network loop"
-  (while (:running? @entities/game) (iteration remote))
+  ;; Receive state
+  (doto (Thread. #(loop-receive-state remote)) (.start))
+  (while (:running? @entities/game) (send-state remote))
   (println "Disconnecting")
   (.close (:socket remote)))
 
