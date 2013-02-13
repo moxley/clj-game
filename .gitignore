@@ -2,6 +2,7 @@
 /lib
 /classes
 /checkouts
+.DS_Store
 pom.xml
 *.jar
 *.class

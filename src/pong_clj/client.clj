@@ -12,7 +12,7 @@
   (if (not= inputs new-inputs)
     (let [t (.getTime (Date.))
           sentence (str "time: " t ", :key-up " (:key-up new-inputs) ", :key-down " (:key-down new-inputs))
-          _ (println "Sending:" sentence)
+          ;;_ (println "Sending:" sentence)
           _ (net/send-data remote (.getBytes sentence))]
           ;;packet (net/receive-packet clientSocket)
           ;;modifiedSentence (String. (:payload packet))
@@ -35,7 +35,6 @@
       (let [packet (net/receive-packet (:socket remote))
             sentence (String. (byte-array (:payload packet)))
             data (read-string sentence)]
-        (println "data:" data)
         (when (:paddle data)
           (swap! entities/paddle into (:paddle data))))
       (catch SocketException e nil))))
@@ -77,7 +76,7 @@
         ; do game stuff
         (display/render)
         (logic/update delta)
-        (input/handle-input)
+        (input/handle-input delta)
         (display/update-display)
         (recur loop-time))))))
 
