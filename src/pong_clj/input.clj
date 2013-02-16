@@ -5,20 +5,29 @@
 (def client-event-queue (atom []))
 (def server-event-queue (atom []))
 
+(defn parse-lwjgl-event [e now]
+  {:key (:event-key e)
+   :name (:key-name e)
+   :state (if (true? (:event-key-state e)) :up :down)
+   :time (/ (e :event-nanoseconds) 1000000)
+   :record-time now})
+
+(defn lwjgl-keyboard-events []
+  (loop [events []]
+    (if (Keyboard/next)
+      (let [key (Keyboard/getEventKey)
+            e {:event-key key
+               :key-name (Keyboard/getKeyName key)
+               :event-key-state (Keyboard/getEventKeyState)
+               :event-nanoseconds (Keyboard/getEventNanoseconds)}]
+        (recur (conj events e)))
+      events)))
+
 (defn save-keyboard-events [delta]
-            ;; milliseconds
-  (let [now (.getTime (java.util.Date.))]
-    (loop [events []]
-      (if (Keyboard/next)
-        (let [key (Keyboard/getEventKey)
-              name (Keyboard/getKeyName key)
-              down (Keyboard/getEventKeyState)
-              ;; time is in milliseconds
-              time (/ (Keyboard/getEventNanoseconds) 1000000)]
-          (recur (conj events {:key key :name name :down down :time time :record-time now})))
-        (do
-          (swap! client-event-queue into events)
-          (swap! server-event-queue into events))))))
+  (let [now (.getTime (java.util.Date.))
+        events (map #(parse-lwjgl-event % now) (lwjgl-keyboard-events))]
+    (swap! client-event-queue into events)
+    (swap! server-event-queue into events)))
 
 (defn key-up? []  (Keyboard/isKeyDown Keyboard/KEY_UP))
 (defn key-down? [] (Keyboard/isKeyDown Keyboard/KEY_DOWN))
@@ -27,4 +36,5 @@
   ;;(save-keyboard-events delta)
   ;;(println "client-event-queue:" @client-event-queue)
   ;;(swap! inputs into {:key-up false :key-down false})
+  ;;(println "save-keyboard-events:" (save-keyboard-events delta))
   (swap! inputs into {:key-up (key-up?) :key-down (key-down?)}))
