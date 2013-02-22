@@ -26,8 +26,17 @@
 (defn save-keyboard-events [delta]
   (let [now (.getTime (java.util.Date.))
         events (map #(parse-lwjgl-event % now) (lwjgl-keyboard-events))]
+    ;; TODO don't these two symbols point to the same object?
     (swap! client-event-queue into events)
     (swap! server-event-queue into events)))
+
+(defn keyboard-events-for
+  ([caller]
+    (keyboard-events-for caller (atom [{:time 123}])))
+  ([caller queue]
+    (let [ret-data @queue]
+      (swap! queue (fn [q] (map #(assoc % :client-read-at 123) q)))
+      ret-data)))
 
 (defn key-pressed?
   ([key] (key-pressed? key @client-event-queue))

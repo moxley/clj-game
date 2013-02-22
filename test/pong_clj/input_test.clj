@@ -26,3 +26,12 @@
     (testing "(key-up?) should be false"
       (let [state (key-up? event-queue)]
         (is (true? state))))))
+
+(deftest event-queue
+  (testing "(keyboard-events-for)"
+    (let [event {:time 1234}
+          queue-data [event]
+          queue (atom queue-data)
+          events (keyboard-events-for :client queue)]
+      (is (= queue-data events))
+      (is (= (assoc event :client-read-at 123) (first @queue))))))
