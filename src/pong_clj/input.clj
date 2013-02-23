@@ -23,19 +23,32 @@
         (recur (conj events e)))
       events)))
 
+(defn now [] (.getTime (java.util.Date.)))
+
+(defn latest-keyboard-events
+  ([] (latest-keyboard-events (now)))
+  ([current-time] (map #(parse-lwjgl-event % current-time) (lwjgl-keyboard-events))))
+
 (defn save-keyboard-events [delta]
-  (let [now (.getTime (java.util.Date.))
-        events (map #(parse-lwjgl-event % now) (lwjgl-keyboard-events))]
-    ;; TODO don't these two symbols point to the same object?
+  (let [events (latest-keyboard-events)]
     (swap! client-event-queue into events)
-    (swap! server-event-queue into events)))
+    (swap! server-event-queue into events)
+    events))
+
+(defn event-processed? [event]
+  (and (:client-read-at event) (:server-read-at event)))
+
+(defn keep-unprocessed-events [queue]
+  (keep (fn [e] (if (event-processed? e) nil e)) queue))
 
 (defn keyboard-events-for
   ([caller]
-    (keyboard-events-for caller (atom [{:time 123}])))
-  ([caller queue]
+    (keyboard-events-for caller (now)))
+  ([caller current-time]
+    (keyboard-events-for caller current-time (latest-keyboard-events current-time)))
+  ([caller current-time queue]
     (let [ret-data @queue]
-      (swap! queue (fn [q] (map #(assoc % :client-read-at 123) q)))
+      (swap! queue (fn [q] (map #(assoc % :client-read-at current-time) q)))
       ret-data)))
 
 (defn key-pressed?

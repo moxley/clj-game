@@ -28,10 +28,36 @@
         (is (true? state))))))
 
 (deftest event-queue
-  (testing "(keyboard-events-for)"
-    (let [event {:time 1234}
-          queue-data [event]
-          queue (atom queue-data)
-          events (keyboard-events-for :client queue)]
-      (is (= queue-data events))
-      (is (= (assoc event :client-read-at 123) (first @queue))))))
+  (let [event-time 100
+        read-time  200]
+
+    (testing "(keep-unprocessed-events)"
+      (testing "it filters out completely read events"
+        (let [queue [{:client-read-at event-time :server-read-at event-time}]]
+          (is (= [] (keep-unprocessed-events queue)))))
+      (testing "it keeps unread events"
+        (let [queue [{:foo "foo"}]]
+          (is (= queue (keep-unprocessed-events queue)))))
+      (testing "it keeps partially-read events"
+        (let [queue [{:client-read-at event-time}]]
+          (is (= queue (keep-unprocessed-events queue)))))
+        (let [queue [{:server-read-at event-time}]]
+          (is (= queue (keep-unprocessed-events queue)))))
+
+    (testing "(keyboard-events-for)"
+      (testing "only client reads"
+        (let [queue-data [{:time event-time}]
+              queue      (atom queue-data)
+              events     (keyboard-events-for :client read-time queue)]
+          (testing "returned events"
+            (is (= queue-data events)))
+          (testing "queue data"
+            (is (= [{:time event-time :client-read-at read-time}] @queue)))))
+
+      ;;(testing "client reads after server already read"
+      ;;  (let [queue-data [{:time event-time :server-read-at 101}]
+      ;;        queue      (atom queue-data)
+      ;;        events     (keyboard-events-for :client read-time queue)]
+      ;;    (testing "queue data"
+      ;;      (is (= [] @queue)))))
+      )))
