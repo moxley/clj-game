@@ -41,6 +41,18 @@
 (defn keep-unprocessed-events [queue]
   (keep (fn [e] (if (event-processed? e) nil e)) queue))
 
+(defn transform-event [event caller time]
+  "Returns nil when all callers have read the event. Otherwise, returns the event with the caller's read time added"
+  ;; TODO use key appropriate for caller
+  (let [new-event (assoc event :client-read-at time)]
+    (if (event-processed? new-event)
+      nil
+      new-event)))
+
+(defn transform-events [caller queue time]
+  "Filter out events that have been read by everybody, and mark the others as read by caller"
+  (keep #(transform-event % caller time) queue))
+
 (defn keyboard-events-for
   ([caller]
     (keyboard-events-for caller (now)))
@@ -48,7 +60,7 @@
     (keyboard-events-for caller current-time (latest-keyboard-events current-time)))
   ([caller current-time queue]
     (let [ret-data @queue]
-      (swap! queue (fn [q] (map #(assoc % :client-read-at current-time) q)))
+      (swap! queue #(transform-events caller % current-time))
       ret-data)))
 
 (defn key-pressed?

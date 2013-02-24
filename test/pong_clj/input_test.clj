@@ -31,12 +31,24 @@
   (let [event-time 100
         read-time  200]
 
+    (testing "(transform-event)"
+      (let [caller :client
+            event {:server-read-at read-time}]
+        (testing "it returns nil if both callers have read it"
+          (let [t-event (transform-event event caller event-time)]
+            (is (nil? t-event))))
+        (testing "it returns an event if only one caller has read it"
+          (let [event {:time event-time}
+                expected (assoc event :client-read-at read-time)
+                t-event (transform-event event caller read-time)]
+            (is (= expected t-event))))))
+
     (testing "(keep-unprocessed-events)"
       (testing "it filters out completely read events"
         (let [queue [{:client-read-at event-time :server-read-at event-time}]]
           (is (= [] (keep-unprocessed-events queue)))))
       (testing "it keeps unread events"
-        (let [queue [{:foo "foo"}]]
+        (let [queue [{:time event-time}]]
           (is (= queue (keep-unprocessed-events queue)))))
       (testing "it keeps partially-read events"
         (let [queue [{:client-read-at event-time}]]
@@ -47,17 +59,17 @@
     (testing "(keyboard-events-for)"
       (testing "only client reads"
         (let [queue-data [{:time event-time}]
-              queue      (atom queue-data)
-              events     (keyboard-events-for :client read-time queue)]
+              queue       (atom queue-data)
+              events      (keyboard-events-for :client read-time queue)]
           (testing "returned events"
             (is (= queue-data events)))
           (testing "queue data"
-            (is (= [{:time event-time :client-read-at read-time}] @queue)))))
+            (is (= queue-data events))))))
 
-      ;;(testing "client reads after server already read"
-      ;;  (let [queue-data [{:time event-time :server-read-at 101}]
-      ;;        queue      (atom queue-data)
-      ;;        events     (keyboard-events-for :client read-time queue)]
-      ;;    (testing "queue data"
-      ;;      (is (= [] @queue)))))
-      )))
+      (testing "removes events that have been read by both callers"
+        (let [queue-data [{:time event-time :server-read-at 101}]
+              queue      (atom queue-data)
+              events     (keyboard-events-for :client read-time queue)]
+          (testing "queue data"
+            (is (= [] @queue)))))
+    nil))
