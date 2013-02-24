@@ -35,17 +35,19 @@
     (swap! server-event-queue into events)
     events))
 
-(defn event-processed? [event]
+(defn event-read? [event]
   (and (:client-read-at event) (:server-read-at event)))
 
 (defn keep-unprocessed-events [queue]
-  (keep (fn [e] (if (event-processed? e) nil e)) queue))
+  (keep (fn [e] (if (event-read? e) nil e)) queue))
+
+(defn read-key [caller]
+  (keyword (str (name caller) "-read-at")))
 
 (defn transform-event [event caller time]
   "Returns nil when all callers have read the event. Otherwise, returns the event with the caller's read time added"
-  ;; TODO use key appropriate for caller
-  (let [new-event (assoc event :client-read-at time)]
-    (if (event-processed? new-event)
+  (let [new-event (assoc event (read-key caller) time)]
+    (if (event-read? new-event)
       nil
       new-event)))
 
